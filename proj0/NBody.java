@@ -42,5 +42,9 @@ public class NBody{
 
         StdDraw.show();
         StdDraw.pause(2000);
+
+        enableDoubleBuffering();
+        double time = 0;
+        
     }
 }
