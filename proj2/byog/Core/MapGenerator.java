@@ -3,36 +3,9 @@ package byog.Core;
 import byog.TileEngine.TETile;
 import byog.TileEngine.Tileset;
 
-import java.util.Random;
+public class MapGenerator extends BasicMap {
 
-public class MapGenerator {
-
-    public static final long SEED = 4564645;
-    public static final Random RANDOM = new Random(SEED);
-
-    public static int[][] overRoom = new int[EmptyMap.WIDTH][EmptyMap.HEIGHT];
-
-    private static class Position {
-        private int x;
-        private int y;
-
-        Position(int x, int y) {
-            this.x = x;
-            this.y = y;
-        }
-    }
-
-    /**
-     * Return a random position
-     * @return
-     */
-    public static Position randomPos(int xRange, int yRange) {
-        int x = RANDOM.nextInt(xRange);
-        int y = RANDOM.nextInt(yRange);
-        Position rp = new Position(x, y);
-
-        return rp;
-    }
+    public static int[][] overlapRoom = new int[WIDTH][HEIGHT];
 
     /**
      * fill map with random rooms
@@ -40,10 +13,10 @@ public class MapGenerator {
      */
     public static void fillRoom(TETile[][] tiles, int numRoomTries) {
         for (int i = 0; i < numRoomTries; i += 1) {
-            int height = RANDOM.nextInt(EmptyMap.HEIGHT / 10 + 2)  + 2;
-            int width = RANDOM.nextInt(EmptyMap.WIDTH / 10 + 2)  + 2;
-            Position rp = randomPos(EmptyMap.WIDTH - width, EmptyMap.HEIGHT - height);
-            tiles = generateRoom(tiles,rp,width,height);
+            int height = RANDOM.nextInt(HEIGHT / 10 + 2)  + 2;
+            int width = RANDOM.nextInt(WIDTH / 10 + 2)  + 2;
+            MapGenerator.Position rp = randomPos(WIDTH - width, HEIGHT - height);
+            tiles = addRoom(tiles,rp,width,height);
         }
     }
 
@@ -55,20 +28,20 @@ public class MapGenerator {
      * @param height
      * @return
      */
-    public static TETile[][] generateRoom(TETile[][] tiles, Position position, int width, int height) {
+    public static TETile[][] addRoom(TETile[][] tiles, Position position, int width, int height) {
             TETile[][] backup = TETile.copyOf(tiles);
-            int[][] roombackup = overRoom.clone();
+            int[][] roomBackup = overlapRoom.clone();
+
             for (int x = position.x; x < position.x + width; x += 1){
                 for (int y = position.y; y < position.y + height; y += 1){
-                    if (overRoom[x][y] == 1) {
-                        overRoom = roombackup;
+                    if (overlapRoom[x][y] == 1) {
+                        overlapRoom = roomBackup;
                         return backup;
                     }
                     tiles[x][y] = Tileset.WALL;
-                    overRoom[x][y] = 1;
+                    overlapRoom[x][y] = 1;
                 }
             }
-
             return tiles;
     }
 
