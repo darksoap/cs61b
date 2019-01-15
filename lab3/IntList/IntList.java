@@ -119,7 +119,14 @@ public class IntList {
         if (A == null) {
             return null;
         }
-        return new IntList(-A.first, reverse(A.rest));
+
+        IntList res = new IntList(A.first, null);
+        A = A.rest;
+        while (A != null) {
+            res = new IntList(A.first, res);
+            A = A.rest;
+        }
+        return res;
     }
 
 
