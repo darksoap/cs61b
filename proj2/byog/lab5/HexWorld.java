@@ -1,6 +1,4 @@
 package byog.lab5;
-import org.junit.Test;
-import static org.junit.Assert.*;
 
 import byog.TileEngine.TERenderer;
 import byog.TileEngine.TETile;
@@ -12,59 +10,19 @@ import java.util.Random;
  * Draws a world consisting of hexagonal regions.
  */
 public class HexWorld {
-    private static final int WIDTH = 40;
-    private static final int HEIGHT = 40;
+    private static final int WIDTH = 50;
+    private static final int HEIGHT = 50;
+
+    private static final long SEED = 2873123;
+    private static final Random RANDOM = new Random(SEED);
 
     private static class Position {
         private int x;
         private int y;
 
-        public Position(int x, int y) {
+        Position(int x, int y) {
             this.x = x;
             this.y = y;
-        }
-    }
-
-    /**
-     * Computesrelative x coordinate of the leftmost tile in the ith
-     * row of a hexagon, assuming that the bottom row has an x-coordinate
-     * of zero.
-     * @param s size of the hexagon
-     * @param i row num of the hexagon, where i = 0 is the bottom
-     * @return
-     */
-    public static int hexrowoffx(int s, int i) {
-        if (i >= s) {
-            return i - 2 * s + 1;
-        }
-        return -i;
-    }
-
-    /**
-     * Computes the width of row i for a size s hexagon.
-     *@param s size of the hexagon
-     *@param i row num of the hexagon, where i = 0 is the bottom
-     *@return
-     */
-    public static int hexrowWidth(int s, int i) {
-        int effectiveI = i;
-        if (i >= s) {
-            effectiveI = 2 * s - 1 - effectiveI;
-        }
-
-        return s + 2 * effectiveI;
-    }
-
-    /**
-     * Adds a row of the same tile.
-     * @param world the world to draw on
-     * @param p the leftmost position of the row
-     * @param width the number of tiles wide to draw
-     * @param t the tile to draw
-     */
-    public static void addrow(TETile[][] world, Position p, int width, TETile t) {
-        for (int xi = 0;xi < width;xi += 1) {
-            world[p.x + xi][p.y] = t;
         }
     }
 
@@ -78,41 +36,95 @@ public class HexWorld {
         }
     }
 
-    /** Adds a hexagon to the world.
-     * @param world the world to draw on
-     * @param p the bottom left coordinate of the hexagon
-     * @param s the size of the hexagon
-     * @param t the tile to draw
+    /** Picks a RANDOM tile with a 33% change of being
+     *  a wall, 33% chance of being a flower, and 33%
+     *  chance of being empty space.
      */
-    public static void addHexagon(TETile[][] world, Position p, int s, TETile t) {
-        if (s < 2) {
-            throw new IllegalArgumentException("Hexagon must be at least size 2.");
-        }
-
-        //total 2*s rows
-        for (int yi = 0;yi < 2 * s; yi += 1) {
-            int thisrowy = p.y + yi;
-
-            int thisrowx = p.x + hexrowoffx(s, yi);
-            Position rowStartP = new Position(thisrowx, thisrowy);
-
-            int rowWidth = hexrowWidth(s, yi);
-
-            addrow(world, rowStartP,rowWidth,t);
+    private static TETile randomTile() {
+        int tileNum = RANDOM.nextInt(5);
+        switch (tileNum) {
+            case 0: return Tileset.TREE;
+            case 1: return Tileset.FLOWER;
+            case 2: return Tileset.GRASS;
+            case 3: return Tileset.WATER;
+            case 4: return Tileset.MOUNTAIN;
+            default: return Tileset.SAND;
         }
     }
 
+    //六边形模块
+    public static void addHexagon(TETile[][] tiles, Position outset, int size) {
+        TETile tile = randomTile();
+
+        for (int i = 0; i < 2 * size; i += 1) {
+            int width = rowWidth(i, size);
+            setRow(rowPos(i, size, outset), width, tiles, tile);
+        }
+    }
+
+    public static int rowWidth(int i, int s) {
+        int effectiveI = i;
+        if (i >= s) {
+            effectiveI = 2 * s - 1 - effectiveI;
+        }
+
+        return s + 2 * effectiveI;
+    }
+
+    public static void setRow(Position p, int width, TETile[][] tiles, TETile tile) {
+        for (int i = 0; i < width; i += 1) {
+            tiles[p.x + i][p.y] = tile;
+        }
+    }
+
+    public static Position rowPos(int i, int size, Position outset) {
+        if (i >= size) {
+            return new Position((outset.x - 2 * size + 2 + i), (outset.y + i - 1));
+        }
+        return new Position((outset.x - i + 1), (outset.y + i - 1));
+    }
+
+
+    //以下为矩阵模块
+    //单列六边形
+    public static void hexagonLine(TETile[][] tiles, Position outset, int n, int size) {
+        for (int i = 0; i < n; i += 1) {
+            addHexagon(tiles, outset, size);
+            outset.y += 2 * size;
+        }
+    }
+
+    //生成阵列
+    public static void tesselate(TETile[][] tiles, Position outset, int size) {
+        int n = 3;
+        for (int i = 0; i < 3; i += 1) {
+            hexagonLine(tiles, linePos(outset, i, size), n, size);
+            n += 1;
+        }
+        hexagonLine(tiles, linePos(outset, 3, size), 4, size);
+        hexagonLine(tiles, linePos(outset, 4, size), 3, size);
+    }
+
+    //单列起点
+    public static Position linePos(Position p, int i, int size) {
+        int x = p.x + i * (2 * size - 1);
+        if (i <= 2) {
+            int y = p.y - i * size;
+            return new Position(x, y);
+        }
+        int y = p.y - (4 - i) * size;
+        return new Position(x, y);
+    }
 
     public static void main(String[] args) {
         TERenderer ter = new TERenderer();
         ter.initialize(WIDTH, HEIGHT);
 
-        TETile[][] tiles = new TETile[WIDTH][HEIGHT];
-        fillWithEmpty(tiles);
+        TETile[][] world = new TETile[WIDTH][HEIGHT];
 
-        Position p = new Position(20, 20);
-        addHexagon(tiles, p, 5,Tileset.FLOWER);
+        fillWithEmpty(world);
+        tesselate(world, new Position(6, 10), 4);
 
-        ter.renderFrame(tiles);
+        ter.renderFrame(world);
     }
 }
