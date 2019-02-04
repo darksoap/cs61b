@@ -53,6 +53,13 @@ public class HexWorld {
     }
 
     //六边形模块
+
+    /**
+     * 在指定点生成单个六边形
+     * @param tiles
+     * @param outset
+     * @param size
+     */
     public static void addHexagon(TETile[][] tiles, Position outset, int size) {
         TETile tile = randomTile();
 
@@ -62,6 +69,12 @@ public class HexWorld {
         }
     }
 
+    /**
+     * 六边形单行宽度
+     * @param i
+     * @param s
+     * @return
+     */
     public static int rowWidth(int i, int s) {
         int effectiveI = i;
         if (i >= s) {
@@ -71,6 +84,13 @@ public class HexWorld {
         return s + 2 * effectiveI;
     }
 
+    /**
+     * 生成指定位置宽度六边形的一行
+     * @param p
+     * @param width
+     * @param tiles
+     * @param tile
+     */
     public static void setRow(Position p, int width, TETile[][] tiles, TETile tile) {
         for (int i = 0; i < width; i += 1) {
             tiles[p.x + i][p.y] = tile;
@@ -86,7 +106,14 @@ public class HexWorld {
 
 
     //以下为矩阵模块
-    //单列六边形
+
+    /**
+     * 生成单列六边形
+     * @param tiles
+     * @param outset
+     * @param n
+     * @param size
+     */
     public static void hexagonLine(TETile[][] tiles, Position outset, int n, int size) {
         for (int i = 0; i < n; i += 1) {
             addHexagon(tiles, outset, size);
@@ -94,7 +121,12 @@ public class HexWorld {
         }
     }
 
-    //生成阵列
+    /**
+     * 生成阵列
+     * @param tiles
+     * @param outset
+     * @param size
+     */
     public static void tesselate(TETile[][] tiles, Position outset, int size) {
         int n = 3;
         for (int i = 0; i < 3; i += 1) {
@@ -105,7 +137,13 @@ public class HexWorld {
         hexagonLine(tiles, linePos(outset, 4, size), 3, size);
     }
 
-    //单列起点
+    /**
+     * 单列矩阵起点
+     * @param p
+     * @param i
+     * @param size
+     * @return
+     */
     public static Position linePos(Position p, int i, int size) {
         int x = p.x + i * (2 * size - 1);
         if (i <= 2) {
