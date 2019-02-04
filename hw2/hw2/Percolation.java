@@ -96,4 +96,7 @@ public class Percolation {
     public boolean percolates() {
         return site.connected(top, bottom);
     }
+
+    public static void main(String[] args) {
+    }
 }
