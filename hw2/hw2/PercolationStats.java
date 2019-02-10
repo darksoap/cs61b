@@ -17,8 +17,6 @@ public class PercolationStats {
             throw new java.lang.IllegalArgumentException();
         }
 
-        if (N <= 0 || T <= 0) throw new IllegalArgumentException("Illegal Arguments!");
-
         int count = 0;
 
         for (int i = 0; i < T; i += 1) {
@@ -26,13 +24,12 @@ public class PercolationStats {
             while (!p.percolates()) {
                 int rdmRow = StdRandom.uniform(N);
                 int rdmCol = StdRandom.uniform(N);
-                try {
-                    p.open(rdmRow, rdmCol);
-                    count++;
-                } catch (Exception e) {
-                    continue;
+                while (p.isOpen(rdmRow, rdmCol)){
+                    rdmRow = StdRandom.uniform(N);
+                    rdmCol = StdRandom.uniform(N);
                 }
-
+                p.open(rdmRow, rdmCol);
+                count++;
             }
             C[i] = count;
         }
