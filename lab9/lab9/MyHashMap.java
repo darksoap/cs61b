@@ -63,22 +63,40 @@ public class MyHashMap<K, V> implements Map61B<K, V> {
         if (key == null) {
             throw new IllegalArgumentException("first argument to put() is null");
         }
-        if (loadFactor() > MAX_LF) {
-            resize(this.buckets.length * 2);
+
+        if (get(key) != null) {
+            int index = hash(key);
+            buckets[index].put(key, value);
+        } else {
+            size += 1;
+            if (loadFactor() > MAX_LF) {
+                ArrayMap<K, V>[] temp = buckets;
+                int oldSize = size;
+                buckets = new ArrayMap[buckets.length * 2];
+                this.clear();
+                size += oldSize;
+                for (int i = 0; i < temp.length; i++) {
+                    Set<K> setOfBucket = temp[i].keySet();
+                    for (K k : setOfBucket) {
+                        V val = temp[i].get(k);
+                        int idx = hash(k);
+                        buckets[idx].put(k, val);
+                    }
+                }
+            }
+            int index = hash(key);
+            buckets[index].put(key, value);
         }
-        int i = hash(key);
-        this.buckets[i].put(key, value);
-        size += 1;
     }
 
     private void resize(int length) {
         ArrayMap<K, V>[] tmp = new ArrayMap[length];
         for (int i = 0; i < this.buckets.length; i += 1) {
-            Iterator itr = this.buckets[i].iterator();
-            while (itr.hasNext()) {
-                K k = (K) itr.next();
-                int n = Math.floorMod(k.hashCode(), tmp.length);
-                tmp[n].put(k, this.buckets[i].get(k));
+            Set<K> setOfbucket = buckets[i].keySet();
+            for (K k : setOfbucket) {
+                V val = buckets[i].get(k);
+                int idx = Math.floorMod(k.hashCode(), tmp.length);
+                tmp[idx].put(k, val);
             }
         }
         this.buckets = tmp;

@@ -4,7 +4,7 @@ import edu.princeton.cs.introcs.StdRandom;
 import edu.princeton.cs.introcs.StdStats;
 
 public class PercolationStats {
-    private int[] C;
+    private double[] result;
 
     /**
      * perform T independent experiments on an N-by-N grid
@@ -17,7 +17,7 @@ public class PercolationStats {
             throw new java.lang.IllegalArgumentException();
         }
 
-        int count = 0;
+        result = new double[T];
 
         for (int i = 0; i < T; i += 1) {
             Percolation p = pf.make(N);
@@ -29,9 +29,8 @@ public class PercolationStats {
                     rdmCol = StdRandom.uniform(N);
                 }
                 p.open(rdmRow, rdmCol);
-                count++;
             }
-            C[i] = count;
+            result[i] = p.numberOfOpenSites() / (N * N);
         }
     }
 
@@ -40,7 +39,7 @@ public class PercolationStats {
      * @return
      */
     public double mean() {
-        return StdStats.mean(C);
+        return StdStats.mean(result);
     }
 
     /**
@@ -48,7 +47,7 @@ public class PercolationStats {
      * @return
      */
     public double stddev() {
-        return StdStats.stddev(C);
+        return StdStats.stddev(result);
     }
 
     /**
@@ -56,7 +55,7 @@ public class PercolationStats {
      * @return
      */
     public double confidenceLow() {
-        return mean() - 1.96 * Math.sqrt(stddev() / C.length);
+        return mean() - 1.96 * stddev() / Math.sqrt(result.length);
     }
 
     /**
@@ -64,6 +63,6 @@ public class PercolationStats {
      * @return
      */
     public double confidenceHigh() {
-        return mean() + 1.96 * Math.sqrt(stddev() / C.length);
+        return mean() + 1.96 * stddev() / Math.sqrt(result.length);
     }
 }

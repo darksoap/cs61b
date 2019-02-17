@@ -5,6 +5,7 @@ import edu.princeton.cs.algs4.WeightedQuickUnionUF;
 public class Percolation {
     private int size;
     private WeightedQuickUnionUF site;
+    private WeightedQuickUnionUF siteWithoutBottom;
 
     private boolean[][] open;
     private int openNums;
@@ -17,6 +18,7 @@ public class Percolation {
         }
 
         site = new WeightedQuickUnionUF(N * N + 2);
+        siteWithoutBottom = new WeightedQuickUnionUF(N * N + 2);
         size = N;
         open = new boolean[N][N];
         top = N * N;
@@ -56,6 +58,7 @@ public class Percolation {
         //top row check
         if (row == 0) {
             site.union(xyTo1D(row, col), top);
+            siteWithoutBottom.union(xyTo1D(row, col), top);
         }
         //bottom
         if (row == size - 1) {
@@ -65,18 +68,22 @@ public class Percolation {
         //up
         if (row > 0 && isOpen(row - 1, col)) {
             site.union(xyTo1D(row, col), xyTo1D(row - 1, col));
+            siteWithoutBottom.union(xyTo1D(row, col), xyTo1D(row - 1, col));
         }
         //down
         if (row < size - 1 && isOpen(row + 1, col)) {
             site.union(xyTo1D(row, col), xyTo1D(row + 1, col));
+            siteWithoutBottom.union(xyTo1D(row, col), xyTo1D(row + 1, col));
         }
         //left
         if (col > 0 && isOpen(row, col - 1)) {
             site.union(xyTo1D(row, col), xyTo1D(row, col - 1));
+            siteWithoutBottom.union(xyTo1D(row, col), xyTo1D(row, col - 1));
         }
         //right
         if (col < size - 1 && isOpen(row, col + 1)) {
             site.union(xyTo1D(row, col), xyTo1D(row, col + 1));
+            siteWithoutBottom.union(xyTo1D(row, col), xyTo1D(row, col + 1));
         }
     }
 
@@ -86,7 +93,7 @@ public class Percolation {
 
     public boolean isFull(int row, int col) {
         int n = xyTo1D(row, col);
-        return  (isOpen(row, col) && site.connected(n, top));
+        return  (isOpen(row, col) && siteWithoutBottom.connected(n, top));
     }
 
     public int numberOfOpenSites() {
