@@ -11,9 +11,9 @@ public class Solver {
      * puzzle using the A* algorithm. Assumes a solution exists.
      * @param initial
      */
-    Stack<WorldState> close = new Stack<>();
+    private Stack<WorldState> close = new Stack<>();
 
-    public Solver(WorldState initial){
+    public Solver(WorldState initial) {
         MinPQ<SearchNode> tracker = new MinPQ<>();
         tracker.insert(new SearchNode(initial, 0, null));
 

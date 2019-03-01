@@ -20,7 +20,7 @@ public class Board implements WorldState {
         board = new int[size][size];
 
         for (int i = 0; i < size; i++) {
-            for (int j = 0;j < size; j++) {
+            for (int j = 0; j < size; j++) {
                 goal[i][j] = i * size + j + 1;
                 board[i][j] = tiles[i][j];
             }
@@ -36,10 +36,10 @@ public class Board implements WorldState {
      */
     public int tileAt(int i, int j) {
         if (i < 0 || i > size - 1) {
-            throw new java.lang.IndexOutOfBoundsException(i + "between 0 and size - 1" );
+            throw new java.lang.IndexOutOfBoundsException(i + "between 0 and size - 1");
         }
         if (j < 0 || j > size - 1) {
-            throw new java.lang.IndexOutOfBoundsException(j + "between 0 and size - 1" );
+            throw new java.lang.IndexOutOfBoundsException(j + "between 0 and size - 1");
         }
         return board[i][j];
     }
@@ -48,7 +48,7 @@ public class Board implements WorldState {
      * Returns the board size N
      * @return
      */
-    public int size(){
+    public int size() {
         return size;
     }
 
@@ -97,7 +97,7 @@ public class Board implements WorldState {
     public int hamming() {
         int count = 0;
         for (int i = 0; i < size; i++) {
-            for (int j = 0;j < size; j++) {
+            for (int j = 0; j < size; j++) {
                 if (board[i][j] != goal[i][j] && board[i][j] != BLANK) {
                     count++;
                 }
@@ -163,6 +163,11 @@ public class Board implements WorldState {
         return true;
     }
 
+    @Override
+    public int hashCode() {
+        return size * board[0][0] % 3;
+    }
+
     /** Returns the string representation of the board.
      * Uncomment this method. */
     public String toString() {
@@ -171,7 +176,7 @@ public class Board implements WorldState {
         s.append(N + "\n");
         for (int i = 0; i < N; i++) {
             for (int j = 0; j < N; j++) {
-                s.append(String.format("%2d ", tileAt(i,j)));
+                s.append(String.format("%2d ", tileAt(i, j)));
             }
             s.append("\n");
         }
