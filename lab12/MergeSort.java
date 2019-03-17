@@ -82,13 +82,24 @@ public class MergeSort {
         // Your code here!
         if (items.size() == 0 || items.size() == 1) {
             return items;
+        } else if (items.size() == 2) {
+            Queue<Queue<Item>> single = makeSingleItemQueues(items);
+            return mergeSortedQueues(single.dequeue(), single.dequeue());
+        } else {
+            Queue<Item> leftQ = new Queue<>();
+            Queue<Item> rightQ = new Queue<>();
+            int i = 0;
+            for (Item item : items) {
+                if (i < items.size() / 2) {
+                    leftQ.enqueue(item);
+                } else {
+                    rightQ.enqueue(item);
+                }
+            }
+            leftQ = mergeSort(leftQ);
+            rightQ = mergeSort(rightQ);
+            return mergeSortedQueues(leftQ,rightQ);
         }
-        Queue<Queue<Item>> single = makeSingleItemQueues(items);
-        Queue<Item> res = single.dequeue();
-        while (!single.isEmpty()) {
-            res = mergeSortedQueues(res, single.dequeue());
-        }
-        return res;
     }
 
     public static void main(String[] args) {
