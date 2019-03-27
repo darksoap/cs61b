@@ -95,6 +95,7 @@ public class MergeSort {
                 } else {
                     rightQ.enqueue(item);
                 }
+                i++;
             }
             leftQ = mergeSort(leftQ);
             rightQ = mergeSort(rightQ);

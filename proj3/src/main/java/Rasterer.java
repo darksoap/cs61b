@@ -1,5 +1,6 @@
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * This class provides all code necessary to take a query box and produce
@@ -8,9 +9,17 @@ import java.util.Map;
  * not draw the output correctly.
  */
 public class Rasterer {
+    private double lrlon;
+    private double ullon;
+    private double ullat;
+    private double lrlat;
 
     public Rasterer() {
         // YOUR CODE HERE
+        lrlon = 0;
+        ullon = 0;
+        ullat = 0;
+        lrlat = 0;
     }
 
     /**
@@ -42,11 +51,90 @@ public class Rasterer {
      *                    forget to set this to true on success! <br>
      */
     public Map<String, Object> getMapRaster(Map<String, Double> params) {
-        // System.out.println(params);
+        lrlon = params.get("lrlon");
+        ullon = params.get("ullon");
+        ullat = params.get("ullat");
+        lrlat = params.get("lrlat");
+        double width = params.get("w");
+        double height = params.get("h");
+
         Map<String, Object> results = new HashMap<>();
-        System.out.println("Since you haven't implemented getMapRaster, nothing is displayed in "
-                           + "your browser.");
+        if (lrlon <= MapServer.ROOT_ULLON || lrlat >= MapServer.ROOT_ULLAT
+            || ullon >= MapServer.ROOT_LRLON || ullat <= MapServer.ROOT_LRLAT
+            || ullon >= lrlon || ullat <= lrlat) {
+            setFalse(results);
+            return results;
+        }
+
+        int depth = fileDepth(ullon, lrlon, width);
+        double perw = (MapServer.ROOT_LRLON - MapServer.ROOT_ULLON) / (Math.pow(2, depth));
+        double perh = (MapServer.ROOT_ULLAT - MapServer.ROOT_LRLAT) / (Math.pow(2, depth));
+
+        int sx = calX(ullon, perw);
+        int sy = calY(ullat, perh);
+        int tx = calX(lrlon, perw);
+        int ty = calY(lrlat, perh);
+
+        //write result
+        results.put("render_grid", genString(depth, sx, sy, tx, ty));
+        results.put("raster_ul_lon", sx * perw + MapServer.ROOT_ULLON);
+        results.put("raster_ul_lat", MapServer.ROOT_ULLAT - sy * perh);
+        results.put("raster_lr_lon", (tx + 1) * perw + MapServer.ROOT_ULLON);
+        results.put("raster_lr_lat", MapServer.ROOT_ULLAT - (ty + 1) * perh);
+        results.put("depth", depth);
+        results.put("query_success", true);
         return results;
     }
 
+    private int fileDepth(double ullon, double lrlon, double w) {
+        double originDPP = (MapServer.ROOT_LRLON - MapServer.ROOT_ULLON) / MapServer.TILE_SIZE;
+        double lonDPP = (lrlon - ullon) / w;
+        int depth = 0;
+        while (originDPP > lonDPP) {
+            depth += 1;
+            originDPP = originDPP / 2.0;
+        }
+        if (depth > 7) {
+            return 7;
+        }
+        return depth;
+    }
+
+    private int calX(double target, double per) {
+        if (target <= MapServer.ROOT_ULLON) {
+            return 0;
+        }
+        return (int) Math.floor((target - MapServer.ROOT_ULLON) / per);
+    }
+
+    private int calY(double target, double per) {
+        if (target >= MapServer.ROOT_ULLAT) {
+            return 0;
+        }
+        return (int) Math.floor((MapServer.ROOT_ULLAT - target) / per);
+    }
+
+    private String[][] genString(int d, int sx, int sy, int tx, int ty) {
+        int xi = tx - sx;
+        int yi = ty - sy + 1;
+        String[][] res = new String[yi][xi];
+        for (int i = 0; i < yi; i++) {
+            String[] tmp = new String[xi];
+            for (int j = 0; j < xi; j++) {
+                tmp[j] = "d" + d + "_x" + (sx + j) +"_y" + (sy + i) +".png";
+            }
+            res[i] = tmp;
+        }
+        return res;
+    }
+
+    private void setFalse(Map<String, Object> results) {
+        results.put("raster_ul_lon", Math.random());
+        results.put("raster_ul_lat", Math.random());
+        results.put("raster_lr_lon", Math.random());
+        results.put("raster_lr_lat", Math.random());
+        results.put("depth", Math.random());
+        results.put("query_success", false);
+        results.put("render_grid", Math.random());
+    }
 }
