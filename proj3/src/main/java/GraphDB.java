@@ -7,6 +7,9 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 
 /**
  * Graph for storing all of the intersection (vertex) and road (edge) information.
@@ -18,8 +21,11 @@ import java.util.ArrayList;
  * @author Alan Yao, Josh Hug
  */
 public class GraphDB {
+    private HashMap<Long, Node> nodes ;
+    private HashMap<Long, Way> ways;
+
     /** Your instance variables for storing the graph. You should consider
-     * creating helper classes, e.g. Node, Edge, etc. */
+     * creating helper classes, e.g. Node, Way, etc. */
 
     /**
      * Example constructor shows how to create and start an XML parser.
@@ -27,6 +33,8 @@ public class GraphDB {
      * @param dbPath Path to the XML file to be parsed.
      */
     public GraphDB(String dbPath) {
+        nodes = new HashMap<>();
+        ways = new HashMap<>();
         try {
             File inputFile = new File(dbPath);
             FileInputStream inputStream = new FileInputStream(inputFile);
@@ -52,12 +60,18 @@ public class GraphDB {
     }
 
     /**
-     *  Remove nodes with no connections from the graph.
-     *  While this does not guarantee that any two nodes in the remaining graph are connected,
+     *  Remove ndId with no connections from the graph.
+     *  While this does not guarantee that any two ndId in the remaining graph are connected,
      *  we can reasonably assume this since typically roads are connected.
      */
     private void clean() {
         // TODO: Your code here.
+        Iterator<Map.Entry<Long, Node>> iter = nodes.entrySet().iterator();
+        while (iter.hasNext()) {
+            if (iter.next().getValue().connected.size() == 0) {
+                iter.remove();
+            }
+        }
     }
 
     /**
@@ -66,7 +80,7 @@ public class GraphDB {
      */
     Iterable<Long> vertices() {
         //YOUR CODE HERE, this currently returns only an empty list.
-        return new ArrayList<Long>();
+        return nodes.keySet();
     }
 
     /**
@@ -75,7 +89,7 @@ public class GraphDB {
      * @return An iterable of the ids of the neighbors of v.
      */
     Iterable<Long> adjacent(long v) {
-        return null;
+        return nodes.get(v).connected;
     }
 
     /**
@@ -136,7 +150,21 @@ public class GraphDB {
      * @return The id of the node in the graph closest to the target.
      */
     long closest(double lon, double lat) {
-        return 0;
+        double resDis = 9999;
+        long resId = 1111111;
+        for (Map.Entry<Long, Node> entry : nodes.entrySet()) {
+            long id = entry.getKey();
+            Node nd = entry.getValue();
+            double dis = distance(nd.lon, nd.lat, lon, lat);
+            if (dis == 0) {
+                return id;
+            }
+            if (dis < resDis) {
+                resDis = dis;
+                resId = id;
+            }
+        }
+        return resId;
     }
 
     /**
@@ -145,7 +173,7 @@ public class GraphDB {
      * @return The longitude of the vertex.
      */
     double lon(long v) {
-        return 0;
+        return nodes.get(v).lon;
     }
 
     /**
@@ -154,6 +182,70 @@ public class GraphDB {
      * @return The latitude of the vertex.
      */
     double lat(long v) {
-        return 0;
+        return nodes.get(v).lat;
+    }
+
+    void addNode(Node n) {
+        nodes.put(n.id, n);
+    }
+
+    void addWay(Way w) {
+        ways.put(w.id, w);
+    }
+
+    void addEdge(Way w){
+        Node prev = nodes.get(w.ndId.get(0));
+        for (int i = 1; i < w.ndId.size(); i++) {
+            Node current = nodes.get(w.ndId.get(i));
+            prev.connected.add(current.id);
+            current.connected.add(prev.id);
+            prev = current;
+        }
+    }
+
+    void removeNode(Long id){
+        nodes.remove(id);
+    }
+
+    static class Node {
+        long id;
+        double lat;
+        double lon;
+        boolean isLocation;
+        ArrayList<Long> connected;
+        HashMap<String, String> tags;
+
+        Node(String id, String lat, String lon) {
+            this.id = Long.parseLong(id);
+            this.lat = Double.parseDouble(lat);
+            this.lon = Double.parseDouble(lon);
+            connected = new ArrayList<>();
+            tags = new HashMap<>();
+        }
+
+        void addTag(String k, String v) {
+            isLocation = true;
+            tags.put(k, v);
+        }
+    }
+
+    static class Way {
+        long id;
+        ArrayList<Long> ndId;
+        HashMap<String, String> tags;
+
+        Way(String id) {
+            this.id = Long.parseLong(id);
+            ndId = new ArrayList<>();
+            tags = new HashMap<>();
+        }
+
+        void addNode(String id) {
+            ndId.add(Long.parseLong(id));
+        }
+
+        void addTag(String k, String v) {
+            tags.put(k, v);
+        }
     }
 }
