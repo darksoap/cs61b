@@ -46,7 +46,7 @@ public class Rasterer {
      * "raster_ul_lat" : Number, the bounding upper left latitude of the rastered image. <br>
      * "raster_lr_lon" : Number, the bounding lower right longitude of the rastered image. <br>
      * "raster_lr_lat" : Number, the bounding lower right latitude of the rastered image. <br>
-     * "depth"         : Number, the depth of the ndId of the rastered image <br>
+     * "depth"         : Number, the depth of the nodes of the rastered image <br>
      * "query_success" : Boolean, whether the query was able to successfully complete; don't
      *                    forget to set this to true on success! <br>
      */
@@ -70,10 +70,31 @@ public class Rasterer {
         double perw = (MapServer.ROOT_LRLON - MapServer.ROOT_ULLON) / (Math.pow(2, depth));
         double perh = (MapServer.ROOT_ULLAT - MapServer.ROOT_LRLAT) / (Math.pow(2, depth));
 
-        int sx = calX(ullon, perw);
-        int sy = calY(ullat, perh);
-        int tx = calX(lrlon, perw);
-        int ty = calY(lrlat, perh);
+        if (ullon < MapServer.ROOT_ULLON) {
+            ullon = MapServer.ROOT_ULLON;
+        }
+
+        if (lrlon > MapServer.ROOT_LRLON) {
+            lrlon = MapServer.ROOT_LRLON;
+        }
+
+        if (ullat > MapServer.ROOT_ULLAT) {
+            ullat = MapServer.ROOT_ULLAT;
+        }
+
+        if (lrlat < MapServer.ROOT_LRLAT) {
+            lrlat = MapServer.ROOT_LRLAT;
+        }
+
+        int sx = (int) Math.floor((ullon - MapServer.ROOT_ULLON) / perw);
+        int sy = (int) Math.floor((MapServer.ROOT_ULLAT - ullat) / perh);
+
+        double lonDist = lrlon - ((perw * (double) (sx + 1)) + MapServer.ROOT_ULLON);
+        double latDist = (MapServer.ROOT_ULLAT - (perh * (double) (sy + 1)) - lrlat);
+
+        int tx = (int) Math.ceil(lonDist / perw) + sx;
+        int ty = (int) Math.ceil(latDist / perh) + sy;
+
 
         //write result
         results.put("render_grid", genString(depth, sx, sy, tx, ty));
@@ -83,6 +104,7 @@ public class Rasterer {
         results.put("raster_lr_lat", MapServer.ROOT_ULLAT - (ty + 1) * perh);
         results.put("depth", depth);
         results.put("query_success", true);
+        //System.out.println(results);
         return results;
     }
 
@@ -100,30 +122,14 @@ public class Rasterer {
         return depth;
     }
 
-    private int calX(double target, double per) {
-        if (target <= MapServer.ROOT_ULLON) {
-            return 0;
-        }
-        return (int) Math.floor((target - MapServer.ROOT_ULLON) / per);
-    }
-
-    private int calY(double target, double per) {
-        if (target >= MapServer.ROOT_ULLAT) {
-            return 0;
-        }
-        return (int) Math.floor((MapServer.ROOT_ULLAT - target) / per);
-    }
-
     private String[][] genString(int d, int sx, int sy, int tx, int ty) {
-        int xi = tx - sx;
+        int xi = tx - sx + 1;
         int yi = ty - sy + 1;
         String[][] res = new String[yi][xi];
         for (int i = 0; i < yi; i++) {
-            String[] tmp = new String[xi];
             for (int j = 0; j < xi; j++) {
-                tmp[j] = "d" + d + "_x" + (sx + j) +"_y" + (sy + i) +".png";
+                res[i][j] = "d" + d + "_x" + (sx + j) +"_y" + (sy + i) +".png";
             }
-            res[i] = tmp;
         }
         return res;
     }

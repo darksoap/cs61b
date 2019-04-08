@@ -1,5 +1,4 @@
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -11,7 +10,7 @@ import java.util.regex.Pattern;
  * The difference between A* and Dijkstra's is only a couple of lines of code, and boils
  * down to the priority you use to order your vertices.
  */
-public class Router {
+public class  Router {
     /**
      * Return a List of longs representing the shortest path from the node
      * closest to a start location and the node closest to the destination
@@ -25,7 +24,58 @@ public class Router {
      */
     public static List<Long> shortestPath(GraphDB g, double stlon, double stlat,
                                           double destlon, double destlat) {
-        return null; // FIXME
+        HashMap<Long, Double> distTo = new HashMap<>();
+        HashMap<Long, Long> edgeTo = new HashMap<>();
+
+        long source = g.closest(stlon,stlat);
+        long target = g.closest(destlon, destlat);
+
+        class NodeComparator implements Comparator<Long> {
+            @Override
+            public int compare(Long n1, Long n2) {
+                double dist1 = distTo.get(n1) + g.distance(n1, target);
+                double dist2 = distTo.get(n2) + g.distance(n2, target);
+                return Double.compare(dist1, dist2);
+            }
+        }
+
+        PriorityQueue<Long> fringe = new PriorityQueue<>(new NodeComparator());
+
+        for (Long l : g.vertices()) {
+            if (l.equals(source)) {
+                distTo.put(l, 0.0);
+            } else {
+                distTo.put(l, Double.MAX_VALUE);
+            }
+            fringe.add(l);
+        }
+
+        boolean reached = false;
+        ArrayList<Long> dir = new ArrayList<>();
+
+        while (!reached && !fringe.isEmpty()) {
+            long curr = fringe.remove();
+            for (long v : g.adj(curr)) {
+                if (distTo.get(v) > distTo.get(curr) + g.distance(curr, v)) {
+                    distTo.replace(v, distTo.get(curr) + g.distance(curr, v));
+                    edgeTo.put(v, curr);
+                    fringe.remove(v);
+                    fringe.add(v);
+                }
+                if (v == target) {
+                    reached = true;
+                }
+            }
+        }
+
+        long current = target;
+        while (current != source) {
+            dir.add(0, current);
+            current = edgeTo.get(current);
+        }
+        dir.add(0, source);
+
+        return dir;
     }
 
     /**

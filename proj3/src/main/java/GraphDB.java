@@ -6,10 +6,7 @@ import java.io.IOException;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Graph for storing all of the intersection (vertex) and road (edge) information.
@@ -21,8 +18,8 @@ import java.util.Map;
  * @author Alan Yao, Josh Hug
  */
 public class GraphDB {
-    private HashMap<Long, Node> nodes ;
-    private HashMap<Long, Way> ways;
+    HashMap<Long, Node> nodes ;
+    HashMap<Long, Way> ways;
 
     /** Your instance variables for storing the graph. You should consider
      * creating helper classes, e.g. Node, Way, etc. */
@@ -60,8 +57,8 @@ public class GraphDB {
     }
 
     /**
-     *  Remove ndId with no connections from the graph.
-     *  While this does not guarantee that any two ndId in the remaining graph are connected,
+     *  Remove nodes with no connections from the graph.
+     *  While this does not guarantee that any two nodes in the remaining graph are connected,
      *  we can reasonably assume this since typically roads are connected.
      */
     private void clean() {
@@ -203,8 +200,12 @@ public class GraphDB {
         }
     }
 
-    void removeNode(Long id){
-        nodes.remove(id);
+    Node getNode(long id) {
+        return nodes.get(id);
+    }
+
+    List<Long> adj(long id) {
+        return nodes.get(id).connected;
     }
 
     static class Node {
