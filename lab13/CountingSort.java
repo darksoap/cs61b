@@ -1,3 +1,8 @@
+import java.util.HashMap;
+import java.util.Map;
+import java.util.PriorityQueue;
+import java.util.Queue;
+
 /**
  * Class with 2 ways of doing Counting sort, one naive way and one "better" way
  *
@@ -67,6 +72,34 @@ public class CountingSort {
      */
     public static int[] betterCountingSort(int[] arr) {
         // TODO make counting sort work with arrays containing negative numbers.
-        return null;
+        Map<Integer, Integer> nums = new HashMap<>();
+        Queue<Integer> queue = new PriorityQueue<>();
+        // find max
+        for (int i : arr) {
+            if (!nums.containsKey(i)) {
+                nums.put(i, 0);
+                queue.add(i);
+            }
+        }
+
+        // gather all the counts for each value
+        for (int i : arr) {
+            nums.merge(i, 1, Integer::sum);
+        }
+
+        // when we're dealing with ints, we can just put each value
+        // count number of times into the new array
+        int[] sorted = new int[arr.length];
+        int count = 0;
+        while (!queue.isEmpty()) {
+             int num = queue.remove();
+            for (int i = 0; i < nums.get(num); i++) {
+                sorted[count] = num;
+                count++;
+            }
+        }
+
+        // return the sorted array
+        return sorted;
     }
 }

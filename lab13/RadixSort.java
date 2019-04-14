@@ -17,7 +17,19 @@ public class RadixSort {
      */
     public static String[] sort(String[] asciis) {
         // TODO: Implement LSD Sort
-        return null;
+        int max = Integer.MIN_VALUE;
+        for (String s : asciis) {
+            if (s.length() > max) {
+                max = s.length();
+            }
+        }
+
+        String[] toSort = asciis.clone();
+        for (int  d = 1; d <= max; d++) {
+            sortHelperLSD(toSort, d);
+        }
+
+        return toSort;
     }
 
     /**
@@ -28,7 +40,39 @@ public class RadixSort {
      */
     private static void sortHelperLSD(String[] asciis, int index) {
         // Optional LSD helper method for required LSD radix sort
-        return;
+        int[] count = new int[256];
+
+        for (String s : asciis) {
+            if (s.length() < index) {
+                int i = (int) s.charAt(0);
+                count[i]++;
+            } else {
+                int pos = s.length() - index;
+                int i = (int) s.charAt(pos);
+                count[i]++;
+            }
+        }
+
+        for (int i = 1; i < count.length; i++) {
+            count[i] += count[i - 1];
+        }
+
+        String[] tmp = asciis.clone();
+        for (int i = asciis.length - 1; i >= 0; i--) {
+            String current = tmp[i];
+            int pos = current.length() - index;
+            if (pos < 0) {
+                int dig = (int) current.charAt(0);
+                asciis[--count[dig]] = current;
+            } else {
+                int dig = (int) current.charAt(pos);
+                asciis[--count[dig]] = current;
+            }
+
+            if (i == 0) {
+                tmp = asciis.clone();
+            }
+        }
     }
 
     /**
